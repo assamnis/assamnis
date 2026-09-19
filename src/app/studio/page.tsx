@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SCENARIO_LIST, Scenario, ScenarioId } from '@/lib/scenarios';
 
 interface RunResult {
@@ -142,6 +142,15 @@ export default function Home() {
   const [results, setResults] = useState<RunResult[]>([]);
   const [running, setRunning] = useState(false);
 
+  const [code, setCode] = useState('');
+  useEffect(() => {
+    setCode(localStorage.getItem('access_code') || '');
+  }, []);
+  const saveCode = (v: string) => {
+    setCode(v);
+    localStorage.setItem('access_code', v);
+  };
+
   const run = async () => {
     const items = input
       .split(/\n\s*---\s*\n/)
@@ -157,7 +166,7 @@ export default function Home() {
       try {
         const res = await fetch('/api/agent', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'x-access-code': code },
           body: JSON.stringify({ scenario: activeId, input: item, knowledge }),
         });
         const json = await res.json();
@@ -198,6 +207,23 @@ export default function Home() {
           Three ready-to-sell agents for cross-border e-commerce teams.
         </p>
       </header>
+
+      <div className="mb-6 flex flex-wrap items-center gap-2 border border-gray-200 rounded-lg p-3">
+        <label className="text-sm font-medium" htmlFor="access-code">
+          Access code
+        </label>
+        <input
+          id="access-code"
+          type="password"
+          value={code}
+          onChange={(e) => saveCode(e.target.value)}
+          placeholder="输入访问口令"
+          className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm w-56 focus:outline-none focus:ring-2 focus:ring-black"
+        />
+        <span className="text-xs text-gray-500">
+          {code ? '已保存在本机浏览器，不会上传' : '未填写口令时运行会返回 401'}
+        </span>
+      </div>
 
       <nav className="flex gap-2 mb-6">
         {SCENARIO_LIST.map((s) => (

@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import { NextRequest } from 'next/server';
 import { SCENARIOS, ScenarioId } from '@/lib/scenarios';
+import { guard } from '@/lib/guard';
 
 const client = new OpenAI({
   apiKey: process.env.DEEPSEEK_API_KEY,
@@ -16,6 +17,9 @@ interface AgentRequest {
 }
 
 export async function POST(req: NextRequest) {
+  const blocked = guard(req);
+  if (blocked) return blocked;
+
   let body: AgentRequest;
   try {
     body = await req.json();

@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import { NextRequest } from 'next/server';
+import { guard } from '@/lib/guard';
 
 // 复用 OpenAI 兼容 SDK 指向 DeepSeek
 const client = new OpenAI({
@@ -10,6 +11,9 @@ const client = new OpenAI({
 export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
+  const blocked = guard(req);
+  if (blocked) return blocked;
+
   const { messages } = await req.json();
 
   if (!Array.isArray(messages) || messages.length === 0) {
